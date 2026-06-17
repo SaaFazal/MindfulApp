@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Alert, Switch, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, SafeAreaView, Alert, Switch, ScrollView, Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -56,13 +56,26 @@ export default function NotificationsScreen() {
 
   const sendTestNotification = async () => {
     try {
+      if (Platform.OS === 'android') {
+        await Notifications.setNotificationChannelAsync('default', {
+          name: 'default',
+          importance: Notifications.AndroidImportance.MAX,
+          vibrationPattern: [0, 250, 250, 250],
+          lightColor: '#FF231F7C',
+        });
+      }
+
       await Notifications.scheduleNotificationAsync({
         content: {
           title: '🧘 MindfulApp',
           body: 'Time for your daily meditation session!',
           data: { screen: 'Home' },
         },
-        trigger: { seconds: 2 },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+          seconds: 2,
+          channelId: 'default',
+        },
       });
       Alert.alert('Success', 'Test notification sent! Check your notifications in 2 seconds.');
     } catch (err) {
